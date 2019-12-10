@@ -1,14 +1,13 @@
 /* global fetch:false */
-import { fetchFavouritesActionCreator, REHYDRATED } from '../actions'
-import { getFavouritesApiUrl } from '../selectors'
+import { fetchFavouritesActionCreator, REHYDRATED, TOGGLE_FAVOURITE_TYPE } from '../actions'
+import { createIsFavouritedSelector, getFavouritesApiUrl } from '../selectors'
 
-const fetchFavourites = async (apiUrl) => {
-  const url = `${apiUrl}`
-
-  const response = await fetch(url, {
+const fetchFavourites = async (apiUrl, reqMethod = {}) => {
+  const response = await fetch(apiUrl, {
     headers: {
       Accept: 'application/json'
-    }
+    },
+    ...reqMethod
   })
 
   const favourites = await response.json()
@@ -22,12 +21,29 @@ const fetchFavourites = async (apiUrl) => {
   return favourites
 }
 
+const toggleFavourites = (apiUrl, id, isFavourited) => {
+  const url = `${apiUrl}/${id}`
+
+  const reqMethod = {
+    method: isFavourited ? 'DELETE' : 'PUT'
+  }
+
+  return fetchFavourites(url, reqMethod)
+}
+
 export default store => next => action => {
   const ret = next(action)
+  const state = store.getState()
+  const apiUrl = getFavouritesApiUrl(state)
+
+  if (action.type === TOGGLE_FAVOURITE_TYPE) {
+    const entityId = action.payload.entityId
+    const isFavouritedSelector = createIsFavouritedSelector(entityId)
+    const isFavourited = isFavouritedSelector(state)
+    store.dispatch(fetchFavouritesActionCreator(toggleFavourites(apiUrl, entityId, isFavourited)))
+  }
 
   if (action.type === REHYDRATED) {
-    const state = store.getState()
-    const apiUrl = getFavouritesApiUrl(state)
     store.dispatch(fetchFavouritesActionCreator(fetchFavourites(apiUrl)))
   }
 
