@@ -1,23 +1,30 @@
 import React from 'react'
 import { createUseStyles } from 'react-jss'
 import { useSelector } from 'react-redux'
-import { getEvents, isEventsReady } from '../selectors'
+import { getEvents, isEventsReady, getEventsError } from '../selectors'
 import { ReactComponent as TitleIcon } from '../icons/vivid-angle-top-left.svg'
 import theme from '../style/theme'
 import Event from './Event'
+import ErrorPage from './ErrorPage'
+import LoadingIndicator from './LoadingIndicator'
 
 const Events = () => {
   const classes = useStyles()
   const ready = useSelector(isEventsReady)
   const events = useSelector(getEvents)
+  const error = useSelector(getEventsError)
+
+  if (error) {
+    return (<ErrorPage />)
+  }
 
   return (
     <div className={classes.container}>
       <h3 className={classes.title}>
         <TitleIcon className={classes.titleIcon} />
-        Results
+        {ready ? `Results: ${events.length} events found` : 'Results'}
       </h3>
-      {!ready && <p>Loading...</p>}
+      {!ready && <LoadingIndicator />}
       {ready && (
         <div className={classes.tilesWrapper}>
           <div className={classes.tiles}>
@@ -61,7 +68,6 @@ const useStyles = createUseStyles({
       justifyContent: 'flex-start'
     }
   },
-
   tile: {
     margin: [0, 'auto', theme.gutter],
     maxWidth: theme.maxTileWidth,
