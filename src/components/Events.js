@@ -5,6 +5,7 @@ import { getEvents, isEventsReady } from '../selectors'
 import { ReactComponent as TitleIcon } from '../icons/vivid-angle-top-left.svg'
 import theme from '../style/theme'
 import Event from './Event'
+import LoadingIndicator from './LoadingIndicator'
 
 const Events = () => {
   const classes = useStyles()
@@ -17,8 +18,7 @@ const Events = () => {
         <TitleIcon className={classes.titleIcon} />
         Results{ready && <span>: {events.length} events found</span>}
       </h3>
-      {!ready && <p>Loading...</p>}
-      {ready && (
+      {!ready ? (<LoadingIndicator />) : (
         <div className={classes.tilesWrapper}>
           <div className={classes.tiles}>
             {events.map(event => <Event key={event.id} className={classes.tile} content={event} />)}
@@ -61,7 +61,6 @@ const useStyles = createUseStyles({
       justifyContent: 'flex-start'
     }
   },
-
   tile: {
     margin: [0, 'auto', theme.gutter],
     maxWidth: theme.maxTileWidth,
